@@ -12,7 +12,7 @@ void *local_count(void *local_toss)
     double x,y;
     for (times = 0; times < (unsigned long long) local_toss; times++) {
         x = rand_r(&random_seed)/(RAND_MAX+1.0);
-		y = rand_r(&random_seed)/(RAND_MAX+1.0);
+	y = rand_r(&random_seed)/(RAND_MAX+1.0);
         //x = drand48();
         //y = drand48();
         if (x*x + y*y <= 1)
