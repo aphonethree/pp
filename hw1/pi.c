@@ -7,10 +7,10 @@ unsigned long long number_in_circle;
 void *local_count(void *local_toss)
 {
     unsigned long long times,local_sum=0;
-    unsigned long long toss_times = (unsigned long long) local_toss;
+    //unsigned long long toss_times = (unsigned long long) local_toss;
     unsigned int random_seed = time(NULL);
     double x,y;
-    for (times = 0; times < toss_times; times++) {
+    for (times = 0; times < (unsigned long long) local_toss; times++) {
         x = rand_r(&random_seed)/(RAND_MAX+1.0);
 		y = rand_r(&random_seed)/(RAND_MAX+1.0);
         //x = drand48();
