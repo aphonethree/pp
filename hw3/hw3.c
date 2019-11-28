@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
       temp[i*W+j] = random()>>3;
     }
   }
+  MPI_Finalize();
   int count = 0, balance = 0;
   while (iteration--) {       // Compute with up, left, right, down points
     balance = 1;
