@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank_number);
   MPI_Comm_size(MPI_COMM_WORLD, &cpu_number);
   local_l = L/cpu_number;
-  
+   
   for (int i = local_l*rank_number; i < local_l*rank_number+local_l; i++) {
     for (int j = 0; j < W; j++) {
       temp[i*W+j] = random()>>3;
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   while (iteration--) {       // Compute with up, left, right, down points
     balance = 1;
     count++;
-    for (int i = local_l*rank_number; i < local_l*rank_number+local_l; i++) {
+    for (int i = 0; i < L; i++) {
       for (int j = 0; j < W; j++) {
         float t = temp[i*W+j] / d;
         t += temp[i*W+j] * -4;
@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
     temp = next;
     next = tmp;
   }
+ 
   int min = temp[0];
   for (int i = 0; i < L; i++) {
     for (int j = 0; j < W; j++) {
