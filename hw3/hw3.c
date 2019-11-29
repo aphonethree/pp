@@ -11,20 +11,21 @@ int main(int argc, char **argv) {
   float d = (float) random() / RAND_MAX * 0.2;  // Diffusivity
   int *temp = malloc(L*W*sizeof(int));          // Current temperature
   int *next = malloc(L*W*sizeof(int));          // Next time step
-  int rank_number,cpu_number,int_buff;
+  int rank_number,cpu_number;
   int *vector_swap_forward = (int*)malloc(1*W*sizeof(int));
   int *vector_swap_backward = (int*)malloc(1*W*sizeof(int));
   int *read_buf_front = (int*)malloc(W*sizeof(int));
   int *read_buf_back = (int*)malloc(W*sizeof(int));
-  int local_l,tag=0,min=0,read_buff_min,*finish_number,read_buff_balance;
+  int local_l,tag=0,min=0,read_buff_min,read_buff_balance,*global_min,*global_balance;
   MPI_Request request;
   MPI_Status status;
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank_number);
   MPI_Comm_size(MPI_COMM_WORLD, &cpu_number);
-  finish_number = (int*) malloc(cpu_number*sizeof(int));
-  for(int i=0;i<cpu_number;i++)
-    finish_number[i]=0;
+  global_min = (int*) malloc(cpu_number*sizeof(int));
+  global_balance = (int*) malloc(cpu_number*sizeof(int));
+  /*for(int i=0;i<cpu_number;i++)
+    finish_number[i]=0;*/
   local_l = L/cpu_number;
    
   for (int i = local_l*rank_number; i < local_l*rank_number+local_l; i++) {
@@ -89,9 +90,10 @@ int main(int argc, char **argv) {
                     }          
             }
         }
+        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
+        MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
         if (balance) {
             if(rank_number>0){
-                    MPI_Isend(&balance,1,MPI_INT,0,tag,MPI_COMM_WORLD,&request);
                 break;
             }
         }
@@ -100,22 +102,8 @@ int main(int argc, char **argv) {
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             for(int i=0;i<W;i++)
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
-            int iter=0;
-            for(int i=1;i<cpu_number;i++){
-                if(finish_number[i]==0){
-                    MPI_Irecv(&read_buff_min,1,MPI_INT,i,tag,MPI_COMM_WORLD,&request);
-                    MPI_Irecv(&read_buff_balance,1,MPI_INT,i,tag,MPI_COMM_WORLD,&request);
-                    
-                    if(read_buff_min<local_min)
-                        local_min = read_buff_min;
-                    if(read_buff_balance==1)
-                        finish_number[i]=1;
-                }
-                else
-                        iter++;
-            }
-            if(iter==cpu_number-1 && balance)
-                    break;
+            for(int i=0;i<cpu_number;i++)
+                printf("%d,%d\n",global_balance,global_min);
            
         }else if(rank_number>0 && rank_number<cpu_number-1){
             MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
