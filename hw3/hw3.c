@@ -16,7 +16,6 @@ int main(int argc, char **argv) {
   int *vector_swap_backward = (int*)malloc(1*W*sizeof(int));
   int *read_buf_front = (int*)malloc(W*sizeof(int));
   int *read_buf_back = (int*)malloc(W*sizeof(int));
-
     MPI_Datatype COLUMN;
    
 
@@ -103,8 +102,7 @@ int main(int argc, char **argv) {
         }
         
         if(rank_number==0){
-           for(int i=0;i<W;i++)
-                MPI_Isend(&vector_swap_backward[i],1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
+                MPI_Isend(vector_swap_backward,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
 
             MPI_Recv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&status);
             for(int i=0;i<W;i++)
@@ -112,10 +110,10 @@ int main(int argc, char **argv) {
             
            local_count++;
         }else if(rank_number>0 && rank_number<cpu_number-1){
-            for(int i=0;i<W;i++){
-                MPI_Isend(&vector_swap_forward[i],1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
-                MPI_Isend(&vector_swap_backward[i],1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
-            }
+            
+            MPI_Isend(vector_swap_forward,1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isend(vector_swap_backward,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
+        
             MPI_Recv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&status);
             MPI_Recv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&status);
            
@@ -123,33 +121,23 @@ int main(int argc, char **argv) {
                 next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
             }
-        }else if(rank_number==cpu_number-1){
-            for(int i=0;i<W;i++)
-                MPI_Isend(&vector_swap_forward[i],1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
+        }else if(rank_number==(cpu_number-1)){
+            
+            MPI_Isend(vector_swap_forward,1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
             
             MPI_Recv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&status);
             
-             for(int i=0;i<W;i++)
-                 next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
+            for(int i=0;i<W;i++)
+                next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
         }
-        if(balance){
-            local_min = temp[local_l*rank_number];
-                for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
-                    for(int j=0;j<W;j++){
-                        if(local_min>temp[i*W+j])
-                            local_min = temp[i*W+j];
-                    }
-                }
-        }
-        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
-        MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
-        int flag=0;
-        if(rank_number==0){
+        
+        MPI_Allgather(&balance,1,MPI_INT,global_min,1,MPI_INT,MPI_COMM_WORLD); 
+        int flag = 0;
         for(int i=0;i<cpu_number;i++)
-            if(global_balance[i]==1)
+            if(global_balance[i]==0)
                 flag=1;
-        }
-        if(flag){
+
+        if(!flag){
             break;
         }
 
@@ -158,11 +146,21 @@ int main(int argc, char **argv) {
         next = tmp;
     }
   }
+
+        local_min = temp[local_l*rank_number];
+            for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
+                for(int j=0;j<W;j++){
+                    if(local_min>temp[i*W+j])
+                        local_min = temp[i*W+j];
+                }
+            }   
+        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD); 
+
   if(rank_number==0){
-  local_min = global_min[0];
-  for(int i=0;i<cpu_number;i++)
-    if(global_min[i]<local_min)
-        local_min = global_min[i];
+    local_min = global_min[0];
+    for(int i=0;i<cpu_number;i++)
+        if(global_min[i]<local_min)
+            local_min = global_min[i];
   }
   
   
