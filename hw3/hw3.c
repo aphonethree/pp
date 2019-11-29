@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
    
 
 
-  int local_l,tag=0,min=0,read_buff_min,read_buff_balance,*global_min,*global_balance;
+  int local_l,tag=1,min=0,read_buff_min,read_buff_balance,*global_min,*global_balance;
   MPI_Request request;
   MPI_Status status;
   MPI_Init(&argc, &argv);
@@ -72,43 +72,43 @@ int main(int argc, char **argv) {
     }else{
          for (int i = local_l*rank_number; i < local_l*rank_number+local_l; i++) {
             for (int j = 0; j < W; j++) {
-                    float t = temp[i*W+j] / d;
-                    t += temp[i*W+j] * -4;
-                    t += temp[(i - 1 <  0 ? 0 : i - 1) * W + j];
-                    t += temp[(i + 1 >= L ? i : i + 1)*W+j];
-                    t += temp[i*W+(j - 1 <  0 ? 0 : j - 1)];
-                    t += temp[i*W+(j + 1 >= W ? j : j + 1)];
-                    t *= d;
-                    next[i*W+j] = t ;
-                    if (next[i*W+j] != temp[i*W+j]) {
-                        balance = 0;
-                    }
-                    
-                    if(rank_number==0 && i==(local_l*rank_number+local_l-1)){
+                float t = temp[i*W+j] / d;
+                t += temp[i*W+j] * -4;
+                t += temp[(i - 1 <  0 ? 0 : i - 1) * W + j];
+                t += temp[(i + 1 >= L ? i : i + 1)*W+j];
+                t += temp[i*W+(j - 1 <  0 ? 0 : j - 1)];
+                t += temp[i*W+(j + 1 >= W ? j : j + 1)];
+                t *= d;
+                next[i*W+j] = t ;
+                if (next[i*W+j] != temp[i*W+j]) {
+                    balance = 0;
+                }
+                
+                if(rank_number==0 && i==(local_l*rank_number+local_l-1)){
 
-                        vector_swap_backward[j]= next[i*W+j];
+                    vector_swap_backward[j]= next[i*W+j];
 
-                    }else if(rank_number>0 && rank_number<(cpu_number-1)){
+                }else if(rank_number>0 && rank_number<(cpu_number-1)){
 
-                        if(i==local_l*rank_number)
-                            vector_swap_forward[j]= next[i*W+j]; 
-                        else if(i==(local_l*rank_number+local_l-1))
-                            vector_swap_backward[j]= next[i*W+j]; 
+                    if(i==local_l*rank_number)
+                        vector_swap_forward[j]= next[i*W+j]; 
+                    else if(i==(local_l*rank_number+local_l-1))
+                        vector_swap_backward[j]= next[i*W+j]; 
 
-                    }else if(rank_number==(cpu_number-1)&&i==local_l*rank_number ){
-                            vector_swap_forward[j]= next[i*W+j]; 
-                    }          
+                }else if(rank_number==(cpu_number-1)&&i==local_l*rank_number ){
+                    vector_swap_forward[j]= next[i*W+j]; 
+                }          
             }
         }
         
         if(rank_number==0){
-                MPI_Isend(vector_swap_backward,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isend(vector_swap_backward,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
 
             MPI_Recv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&status);
             for(int i=0;i<W;i++)
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
             
-           local_count++;
+            local_count++;
         }else if(rank_number>0 && rank_number<cpu_number-1){
             
             MPI_Isend(vector_swap_forward,1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
                 next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
         }
         
-        MPI_Allgather(&balance,1,MPI_INT,global_min,1,MPI_INT,MPI_COMM_WORLD); 
+        MPI_Allgather(&balance,1,MPI_INT,global_balance,1,MPI_INT,MPI_COMM_WORLD); 
         int flag = 0;
         for(int i=0;i<cpu_number;i++)
             if(global_balance[i]==0)
@@ -144,31 +144,32 @@ int main(int argc, char **argv) {
         int *tmp = temp;
         temp = next;
         next = tmp;
+        }
     }
-  }
 
-        local_min = temp[local_l*rank_number];
-            for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
-                for(int j=0;j<W;j++){
-                    if(local_min>temp[i*W+j])
-                        local_min = temp[i*W+j];
-                }
-            }   
-        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD); 
+    local_min = temp[local_l*rank_number];
+        for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
+            for(int j=0;j<W;j++){
+                if(local_min>temp[i*W+j])
+                    local_min = temp[i*W+j];
+            }
+        }   
+    MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD); 
 
-  if(rank_number==0){
-    local_min = global_min[0];
-    for(int i=0;i<cpu_number;i++)
-        if(global_min[i]<local_min)
-            local_min = global_min[i];
-  }
+    if(rank_number==0){
+        local_min = global_min[0];
+        for(int i=0;i<cpu_number;i++)
+            if(global_min[i]<local_min)
+                local_min = global_min[i];
+    }
   
   
   
-  if(rank_number==0)
-    printf("Size: %d*%d, Iteration: %d, Min Temp: %d\n", L, W, local_count, local_min);
+    if(rank_number==0)
+        printf("Size: %d*%d, Iteration: %d, Min Temp: %d\n", L, W, local_count, local_min);
+    
     MPI_Finalize();
-  return 0;
+    return 0;
 }
 /*
 #include <stdio.h>
