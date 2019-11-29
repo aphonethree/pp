@@ -87,12 +87,6 @@ int main(int argc, char **argv) {
                     }          
             }
         }
-         if (balance) {
-                if(rank_number>0){
-                     MPI_Isend(&balance,1,MPI_INT,0,tag,MPI_COMM_WORLD,&request);
-                    break;
-                }
-            }
         if(rank_number==0){
             MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
@@ -129,6 +123,12 @@ int main(int argc, char **argv) {
             
              for(int i=0;i<W;i++)
                  next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
+        }
+        if (balance) {
+            if(rank_number>0){
+                    MPI_Isend(&balance,1,MPI_INT,0,tag,MPI_COMM_WORLD,&request);
+                break;
+            }
         }
         int *tmp = temp;
         temp = next;
