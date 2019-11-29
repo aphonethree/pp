@@ -95,11 +95,8 @@ int main(int argc, char **argv) {
                     }          
             }
         }
-        
-        MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
-        if (balance) {
-            if(rank_number>0){
-                local_min = temp[local_l*rank_number];
+        if(balance){
+            local_min = temp[local_l*rank_number];
                 for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
                     for(int j=0;j<W;j++){
                         if(local_min>temp[i*W+j])
@@ -107,7 +104,11 @@ int main(int argc, char **argv) {
                     }
 
                 }
-                MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
+        }
+        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
+        MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
+        if (balance) {
+            if(rank_number>0){
                 for(int i=0;i<cpu_number;i++)
                     printf("%d  ",global_min[i]);
                 break;
