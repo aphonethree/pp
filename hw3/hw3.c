@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   }
   
   int local_count = 0, balance = 0, local_min=temp[local_l*rank_number];
-  while (iteration>local_count) {       // Compute with up, left, right, down points
+  while (iteration--) {       // Compute with up, left, right, down points
     balance = 1;
     local_count++;
 
@@ -102,13 +102,16 @@ int main(int argc, char **argv) {
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             for(int i=0;i<W;i++)
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
+            int flag=1;
             for(int i=0;i<cpu_number;i++)
-                printf("%d,%d\n",global_balance,global_min);
+                if(global_balance[i]==0)
+                    flag=0;
+            if(flag)
+                break;
            
         }else if(rank_number>0 && rank_number<cpu_number-1){
             MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
             MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
-            MPI_Isend(&local_min,1,MPI_INT,0,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
            
@@ -118,7 +121,6 @@ int main(int argc, char **argv) {
             }
         }else if(rank_number==cpu_number-1){
             MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
-            MPI_Isend(&local_min,1,MPI_INT,0,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
             
              for(int i=0;i<W;i++)
@@ -135,9 +137,10 @@ int main(int argc, char **argv) {
  
   
   
-  MPI_Finalize();
+  
   if(rank_number==0)
     printf("Size: %d*%d, Iteration: %d, Min Temp: %d\n", L, W, local_count, local_min);
+    MPI_Finalize();
   return 0;
 }
 /*
