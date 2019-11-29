@@ -102,7 +102,6 @@ int main(int argc, char **argv) {
                         if(local_min>temp[i*W+j])
                             local_min = temp[i*W+j];
                     }
-
                 }
         }
         MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -116,9 +115,12 @@ int main(int argc, char **argv) {
         }
         if(rank_number==0){
             int flag=1;
-            for(int i=0;i<cpu_number;i++)
+            for(int i=0;i<cpu_number;i++){
                 if(global_balance[i]==0)
                     flag=0;
+                printf("%d  ",global_balance[i]);
+            }
+            printg(""\n);
             if(flag)
                 break;
             MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
