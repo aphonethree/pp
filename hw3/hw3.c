@@ -81,9 +81,9 @@ int main(int argc, char **argv) {
 
             }
         }
-        if (balance) {
-            break;
-        }
+            if (balance) {
+                break;
+            }
         }
         if(rank_number==0){
             MPI_Isend(&vector_swap_backword,1,MPI_INT,rank_number+1,MPI_COMM_WORLD,&reques);
@@ -112,16 +112,10 @@ int main(int argc, char **argv) {
         next = tmp;
     }
 
-  }
+  
  
   
-  for (int i = 0; i < L; i++) {
-    for (int j = 0; j < W; j++) {
-      if (temp[i*W+j] < min) {
-        min = temp[i*W+j];
-      }
-    }
-  }
+  
   MPI_Finalize();
   printf("Size: %d*%d, Iteration: %d, Min Temp: %d\n", L, W, count, min);
   return 0;
