@@ -80,14 +80,18 @@ int main(int argc, char **argv) {
                     }
                     if(t<local_min)
                         local_min = t;
-                    if(rank_number==0&&i==(local_l*rank_number+local_l-2)){
+                    if(rank_number==0 && i==(local_l*rank_number+local_l-1)){
+
                         vector_swap_backward[j]= next[i*W+j];
-                    }else if(rank_number>0 && rank_number<cpu_number-1){
+
+                    }else if(rank_number>0 && rank_number<(cpu_number-1)){
+
                         if(i==local_l*rank_number)
                             vector_swap_forward[j]= next[i*W+j]; 
-                        else if(i==(local_l*rank_number+local_l-2))
+                        else if(i==(local_l*rank_number+local_l-1))
                             vector_swap_backward[j]= next[i*W+j]; 
-                    }else if(rank_number==cpu_number-1&&local_l*rank_number ){
+
+                    }else if(rank_number==(cpu_number-1)&&i==local_l*rank_number ){
                             vector_swap_forward[j]= next[i*W+j]; 
                     }          
             }
@@ -97,11 +101,7 @@ int main(int argc, char **argv) {
         if (balance) {
             if(rank_number>0){
                 break;
-            }else
-            {
-                
             }
-            
         }
         if(rank_number==0){
             int flag=1;
@@ -144,8 +144,12 @@ int main(int argc, char **argv) {
             for (int j = 0; j < W; j++)
              if(temp[i*W+j]<local_min)
                 local_min = temp[i*W+j];*/
-  
- 
+  if(rank_number==0){
+  local_min = global_min[0];
+  for(int i=0;i<cpu_number;i++)
+    if(global_min[i]<local_min)
+        local_min = global_min;
+  }
   
   
   
