@@ -80,12 +80,12 @@ int main(int argc, char **argv) {
                     }
                     if(t<local_min)
                         local_min = t;
-                    if(rank_number==0&&i==(local_l*rank_number+local_l-1)){
+                    if(rank_number==0&&i==(local_l*rank_number+local_l-2)){
                         vector_swap_backward[j]= next[i*W+j];
                     }else if(rank_number>0 && rank_number<cpu_number-1){
                         if(i==local_l*rank_number)
                             vector_swap_forward[j]= next[i*W+j]; 
-                        else if(i==(local_l*rank_number+local_l-1))
+                        else if(i==(local_l*rank_number+local_l-2))
                             vector_swap_backward[j]= next[i*W+j]; 
                     }else if(rank_number==cpu_number-1&&local_l*rank_number ){
                             vector_swap_forward[j]= next[i*W+j]; 
@@ -97,20 +97,24 @@ int main(int argc, char **argv) {
         if (balance) {
             if(rank_number>0){
                 break;
+            }else
+            {
+                
             }
+            
         }
         if(rank_number==0){
-            
-            MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
-            MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
-            for(int i=0;i<W;i++)
-                next[(local_l*rank_number+local_l-1)*W+i] = read_buf_back[i];
             int flag=1;
             for(int i=0;i<cpu_number;i++)
                 if(global_balance[i]==0)
                     flag=0;
             if(flag)
                 break;
+            MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            for(int i=0;i<W;i++)
+                next[(local_l*rank_number+local_l-1)*W+i] = read_buf_back[i];
+            
            local_count++;
         }else if(rank_number>0 && rank_number<cpu_number-1){
             MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
