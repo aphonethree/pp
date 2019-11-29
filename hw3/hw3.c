@@ -113,12 +113,12 @@ int main(int argc, char **argv) {
             
            local_count++;
         }else if(rank_number>0 && rank_number<cpu_number-1){
-            for(int i=0;i<W;I++){
+            for(int i=0;i<W;i++){
                 MPI_Isend(&vector_swap_forward[i],1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
                 MPI_Isend(&vector_swap_backward[i],1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
             }
-            MPI_Recv(read_buf_back,8,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&status);
-            MPI_Recv(read_buf_front,8,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&status);
+            MPI_Recv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&status);
+            MPI_Recv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&status);
            
             for(int i=0;i<W;i++){
                 next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
             for(int i=0;i<W;i++)
                 MPI_Isend(&vector_swap_forward[i],1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
             
-            MPI_Recv(read_buf_front,8,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&status);
+            MPI_Recv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&status);
             
              for(int i=0;i<W;i++)
                  next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
