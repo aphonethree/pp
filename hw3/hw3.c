@@ -147,6 +147,7 @@ int main(int argc, char **argv) {
         }
     }
 
+
     local_min = temp[local_l*rank_number*W];
         for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
             for(int j=0;j<W;j++){
