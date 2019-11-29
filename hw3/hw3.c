@@ -79,12 +79,12 @@ int main(int argc, char **argv) {
                         local_min = t;
                     if(rank_number==0){
                         vector_swap_backward[j]= next[i*W+j];
-                    }else if(rank_number>0 && rank_number<cpu_number){
+                    }else if(rank_number>0 && rank_number<cpu_number-1){
                         if(i==local_l*rank_number)
                             vector_swap_forward[j]= next[i*W+j]; 
                         else if(i==(local_l*rank_number+local_l-1))
                             vector_swap_backward[j]= next[i*W+j]; 
-                    }else if(rank_number==cpu_number){
+                    }else if(rank_number==cpu_number-1){
                             vector_swap_forward[j]= next[i*W+j]; 
                     }          
             }
