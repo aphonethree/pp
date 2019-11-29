@@ -16,6 +16,12 @@ int main(int argc, char **argv) {
   int *vector_swap_backward = (int*)malloc(1*W*sizeof(int));
   int *read_buf_front = (int*)malloc(W*sizeof(int));
   int *read_buf_back = (int*)malloc(W*sizeof(int));
+
+    MPI_DATATYPE COLUMN;
+    MPI_Type_contiguous(W, MPI_INT,&COLUMN);
+    MPI_Type_commit(&COLUMN);
+
+
   int local_l,tag=0,min=0,read_buff_min,read_buff_balance,*global_min,*global_balance;
   MPI_Request request;
   MPI_Status status;
@@ -98,25 +104,25 @@ int main(int argc, char **argv) {
         
         if(rank_number==0){
            
-            MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
-            MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isend(vector_swap_backward,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Irecv(&read_buf_back,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
             for(int i=0;i<W;i++)
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
             
            local_count++;
         }else if(rank_number>0 && rank_number<cpu_number-1){
-            MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
-            MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
-            MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
-            MPI_Irecv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isend(&vector_swap_forward,1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isend(&vector_swap_backward,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Irecv(&read_buf_back,1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Irecv(&read_buf_front,1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
            
             for(int i=0;i<W;i++){
                 next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
             }
         }else if(rank_number==cpu_number-1){
-            MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
-            MPI_Irecv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isend(vector_swap_forward,1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
+            MPI_Irecv(read_buf_front,1,COLUMN,rank_number-1,tag,MPI_COMM_WORLD,&request);
             
              for(int i=0;i<W;i++)
                  next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
