@@ -12,10 +12,10 @@ int main(int argc, char **argv) {
   int *temp = malloc(L*W*sizeof(int));          // Current temperature
   int *next = malloc(L*W*sizeof(int));          // Next time step
   int rank_number,cpu_number,int_buff;
-  int vector_swap_forward = malloc(1*W*sizeof(int));
-  int vector_swap_backword = malloc(1*W*sizeof(int));
-  int read_buf_front = malloc(1*W*sizeof(int));
-  int read_buf_back = malloc(1*W*sizeof(int));
+  int *vector_swap_forward = (int*)malloc(1*W*sizeof(int));
+  int *vector_swap_backword = (int*)malloc(1*W*sizeof(int));
+  int *read_buf_front = (int*)malloc(W*sizeof(int));
+  int *read_buf_back = (int*)malloc(W*sizeof(int));
   int local_l,tag=0,min=0;
   MPI_Request request;
   MPI_Status status;
