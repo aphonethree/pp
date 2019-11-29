@@ -12,6 +12,12 @@ int main(int argc,char* argv[])
      int *read_buf_back = (int*)malloc(8*sizeof(int));
      MPI_Request request;
     MPI_Status status;
+
+    MPI_DATATYPE COLUMN;
+    MPI_Type_contiguous(8, MPI_INT,&COLUMN);
+    MPI_Type_commit(&COLUMN);
+
+
       MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank_number);
     MPI_Comm_size(MPI_COMM_WORLD, &cpu_number);
@@ -28,10 +34,14 @@ int main(int argc,char* argv[])
         	printf("%d  \n",min_global[i]);
 	}
     if(rank_number==1){
-        MPI_Isend(vector_swap_forward,8,MPI_INT,2,tag,MPI_COMM_WORLD,&request);
+        for(int i=0;i<8)
+            printf("%d  ",vector_swap_forward[i]);
+        MPI_Isend(vector_swap_forward,1,COLUMN,2,tag,MPI_COMM_WORLD,&request);
     }
     if(rank_number==2){
-        MPI_Irecv(read_buf_back,W,MPI_INT,1,tag,MPI_COMM_WORLD,&request);
+        MPI_Irecv(read_buf_back,1,COLUMN,1,tag,MPI_COMM_WORLD,&request);
+        for(int i=0;i<8)
+            printf("%d  ",read_buf_back[i]);
     }
         MPI_Finalize();
         return 0;
