@@ -18,8 +18,7 @@ int main(int argc, char **argv) {
   int *read_buf_back = (int*)malloc(W*sizeof(int));
 
     MPI_Datatype COLUMN;
-    MPI_Type_contiguous(W, MPI_INT,&COLUMN);
-    MPI_Type_commit(&COLUMN);
+   
 
 
   int local_l,tag=0,min=0,read_buff_min,read_buff_balance,*global_min,*global_balance;
@@ -28,6 +27,8 @@ int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank_number);
   MPI_Comm_size(MPI_COMM_WORLD, &cpu_number);
+   MPI_Type_contiguous(W, MPI_INT,&COLUMN);
+    MPI_Type_commit(&COLUMN);
   global_min = (int*) malloc(cpu_number*sizeof(int));
   global_balance = (int*) malloc(cpu_number*sizeof(int));
   /*for(int i=0;i<cpu_number;i++)
