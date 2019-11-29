@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
                     t += temp[i*W+(j + 1 >= W ? j : j + 1)];
                     t *= d;
                     next[i*W+j] = t ;
-                    if (next[i*W+j] != temp[i*W+j]) {
+                    if (next[i*W+j] != temp[i*W+j]) 
                         balance = 0;
                     if(t<local_min)
                         local_min = t;
@@ -84,17 +84,15 @@ int main(int argc, char **argv) {
                             vector_swap_backward[j]= next[i*W+j]; 
                     }else if(rank_number==cpu_number){
                             vector_swap_forward[j]= next[i*W+j]; 
-                    }
-
+                    }          
             }
         }
-            if (balance) {
+         if (balance) {
                 if(rank_number>0){
                      MPI_Isend(&balance,1,MPI_INT,0,tag,MPI_COMM_WORLD,&request);
                     break;
                 }
             }
-        }
         if(rank_number==0){
             MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
@@ -103,6 +101,7 @@ int main(int argc, char **argv) {
             for(int i=1;i<cpu_number;i++){
                 MPI_Irecv(&read_buff_min,1,MPI_INT,i,tag,MPI_COMM_WORLD,&request);
                 MPI_Irecv(&read_buff_balance,1,MPI_INT,i,tag,MPI_COMM_WORLD,&request);
+                
                 if(read_buff_min<local_min)
                     local_min = read_buff_min;
                 if(read_buff_balance==1)
