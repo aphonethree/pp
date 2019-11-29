@@ -95,34 +95,9 @@ int main(int argc, char **argv) {
                     }          
             }
         }
-        if(balance){
-            local_min = temp[local_l*rank_number];
-                for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
-                    for(int j=0;j<W;j++){
-                        if(local_min>temp[i*W+j])
-                            local_min = temp[i*W+j];
-                    }
-                }
-        }
-        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
-        MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
-        if (balance) {
-            if(rank_number>0){
-                for(int i=0;i<cpu_number;i++)
-                    printf("%d  ",global_min[i]);
-                break;
-            }
-        }
+        
         if(rank_number==0){
-            int flag=1;
-            for(int i=0;i<cpu_number;i++){
-                if(global_balance[i]==0)
-                    flag=0;
-                printf("%d  ",global_balance[i]);
-            }
-            printg(""\n);
-            if(flag)
-                break;
+           
             MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             for(int i=0;i<W;i++)
@@ -146,7 +121,23 @@ int main(int argc, char **argv) {
              for(int i=0;i<W;i++)
                  next[(local_l*rank_number-1)*W+i] = read_buf_front[i];
         }
-
+        if(balance){
+            local_min = temp[local_l*rank_number];
+                for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
+                    for(int j=0;j<W;j++){
+                        if(local_min>temp[i*W+j])
+                            local_min = temp[i*W+j];
+                    }
+                }
+        }
+        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
+        MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
+        int flag=0;
+        for(int i=0;i<cpu_number;i++)
+            if(global_balance[i]==1)
+                flag=1;
+        if(flag)
+            break;
         int *tmp = temp;
         temp = next;
         next = tmp;
