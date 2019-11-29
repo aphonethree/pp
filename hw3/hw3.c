@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   int *next = malloc(L*W*sizeof(int));          // Next time step
   int rank_number,cpu_number,int_buff;
   int *vector_swap_forward = (int*)malloc(1*W*sizeof(int));
-  int *vector_swap_backword = (int*)malloc(1*W*sizeof(int));
+  int *vector_swap_backward = (int*)malloc(1*W*sizeof(int));
   int *read_buf_front = (int*)malloc(W*sizeof(int));
   int *read_buf_back = (int*)malloc(W*sizeof(int));
   int local_l,tag=0,min=0;
@@ -87,13 +87,13 @@ int main(int argc, char **argv) {
             }
         }
         if(rank_number==0){
-            MPI_Isend(vector_swap_backword,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             for(int i=0;i<W;i++)
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
         }else if(rank_number>0 && rank_number<cpu_number){
             MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
-            MPI_Isend(vector_swap_backword,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
+            MPI_Isendvector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
             MPI_Irecv(read_buf_front,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
             MPI_Wait(&request,&status);
