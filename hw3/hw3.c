@@ -147,21 +147,19 @@ int main(int argc, char **argv) {
         }
     }
 
-    local_min = temp[local_l*rank_number];
+    local_min = temp[local_l*rank_number*W];
         for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
             for(int j=0;j<W;j++){
                 if(local_min>temp[i*W+j])
                     local_min = temp[i*W+j];
             }
         }   
-    MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD); 
+    MPI_Allgather(&local_min,1,MPI_INT,global_min,1,MPI_INT,MPI_COMM_WORLD); 
 
-    if(rank_number==0){
         local_min = global_min[0];
         for(int i=0;i<cpu_number;i++)
             if(global_min[i]<local_min)
                 local_min = global_min[i];
-    }
   
   
   
