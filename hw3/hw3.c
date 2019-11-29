@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     }
   }
   
-  int local_count = 0, balance = 0, local_min=temp[local_l*rank_number];
+  int local_count = 0, balance = 0, local_min;
   while (iteration--) {       // Compute with up, left, right, down points
     balance = 1;
     
@@ -78,8 +78,7 @@ int main(int argc, char **argv) {
                     if (next[i*W+j] != temp[i*W+j]) {
                         balance = 0;
                     }
-                    if(t<local_min)
-                        local_min = t;
+                    
                     if(rank_number==0 && i==(local_l*rank_number+local_l-1)){
 
                         vector_swap_backward[j]= next[i*W+j];
@@ -96,10 +95,19 @@ int main(int argc, char **argv) {
                     }          
             }
         }
-        MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
+        
         MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
         if (balance) {
             if(rank_number>0){
+                local_min = temp[local_l*rank_number];
+                for(int i = local_l*rank_number; i < local_l*rank_number+local_l; i++){
+                    for(int j=0;j<W;j++){
+                        if(local_min>temp[i*W+j])
+                            local_min = temp[i*W+j];
+                    }
+
+                }
+                MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
                 break;
             }
         }
@@ -139,11 +147,6 @@ int main(int argc, char **argv) {
         next = tmp;
     }
   }
-  /*local_min=temp[0];
-    for (int i = local_l*rank_number; i < local_l*rank_number+local_l; i++) {
-            for (int j = 0; j < W; j++)
-             if(temp[i*W+j]<local_min)
-                local_min = temp[i*W+j];*/
   if(rank_number==0){
   local_min = global_min[0];
   for(int i=0;i<cpu_number;i++)
