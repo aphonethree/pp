@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     finish_number[i]=0;*/
   local_l = L/cpu_number;
    
-  for (int i = local_l*rank_number; i < local_l*rank_number+local_l; i++) {
+  for (int i = 0; i < L; i++) {
     for (int j = 0; j < W; j++) {
       temp[i*W+j] = random()>>3;
     }
@@ -44,7 +44,6 @@ int main(int argc, char **argv) {
   int local_count = 0, balance = 0, local_min;
   while (iteration--) {       // Compute with up, left, right, down points
     balance = 1;
-    
 
     if(cpu_number==1){
         local_count++;
@@ -150,8 +149,10 @@ int main(int argc, char **argv) {
             if(global_balance[i]==1)
                 flag=1;
         }
-        if(flag)
+        if(flag){
             break;
+        }
+
         int *tmp = temp;
         temp = next;
         next = tmp;
