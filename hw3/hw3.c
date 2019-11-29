@@ -108,6 +108,8 @@ int main(int argc, char **argv) {
 
                 }
                 MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
+                for(int i=0;i<cpu_number;i++)
+                    printf("%d  ",global_min[i]);
                 break;
             }
         }
