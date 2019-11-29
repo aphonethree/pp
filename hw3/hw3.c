@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank_number);
   MPI_Comm_size(MPI_COMM_WORLD, &cpu_number);
-  finish_number = (*int) malloc(cpu_number*sizeof(int));
+  finish_number = (int*) malloc(cpu_number*sizeof(int));
   for(int i=0;i<cpu_number;i++)
     finish_number[i]=0;
   local_l = L/cpu_number;
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     }
   }
   
-  int local_count = 0, balance = 0, local_min=temp[0];
+  int local_count = 0, balance = 0, local_min=temp[local_l*rank_number];
   while (iteration>local_count) {       // Compute with up, left, right, down points
     balance = 1;
     local_count++;
@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
                 if(finish_number[i]==0){
                     MPI_Irecv(&read_buff_min,1,MPI_INT,i,tag,MPI_COMM_WORLD,&request);
                     MPI_Irecv(&read_buff_balance,1,MPI_INT,i,tag,MPI_COMM_WORLD,&request);
+                    
                     if(read_buff_min<local_min)
                         local_min = read_buff_min;
                     if(read_buff_balance==1)
@@ -112,10 +113,9 @@ int main(int argc, char **argv) {
                 }
                 else
                         iter++;
-                if(iter==cpu_number-1)
-                    break;
-                
             }
+            if(iter==cpu_number-1 && balance)
+                    break;
            
         }else if(rank_number>0 && rank_number<cpu_number-1){
             MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
