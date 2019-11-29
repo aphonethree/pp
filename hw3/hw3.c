@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
            for(int i=0;i<W;i++)
                 MPI_Isend(&vector_swap_backward[i],1,COLUMN,rank_number+1,tag,MPI_COMM_WORLD,&request);
 
-            MPI_Recv(&read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&status);
+            MPI_Recv(read_buf_back,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&status);
             for(int i=0;i<W;i++)
                 next[(local_l*rank_number+local_l)*W+i] = read_buf_back[i];
             
@@ -145,9 +145,11 @@ int main(int argc, char **argv) {
         MPI_Gather(&local_min,1,MPI_INT,global_min,1,MPI_INT,0,MPI_COMM_WORLD);
         MPI_Gather(&balance,1,MPI_INT,global_balance,1,MPI_INT,0,MPI_COMM_WORLD);
         int flag=0;
+        if(rank_number==0){
         for(int i=0;i<cpu_number;i++)
             if(global_balance[i]==1)
                 flag=1;
+        }
         if(flag)
             break;
         int *tmp = temp;
