@@ -109,9 +109,9 @@ int main(int argc, char **argv) {
                     finish_number++;
                 if(finish_number==cpu_number && balance)
                     break;
-                 MPI_Wait(&request,&status);
+                 
             }
-           
+           MPI_Wait(&request,&status);
         }else if(rank_number>0 && rank_number<cpu_number){
             MPI_Isend(vector_swap_forward,W,MPI_INT,rank_number-1,tag,MPI_COMM_WORLD,&request);
             MPI_Isend(vector_swap_backward,W,MPI_INT,rank_number+1,tag,MPI_COMM_WORLD,&request);
@@ -135,6 +135,7 @@ int main(int argc, char **argv) {
         temp = next;
         next = tmp;
     }
+  }
 
   
  
