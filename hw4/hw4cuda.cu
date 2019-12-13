@@ -105,7 +105,7 @@ __global__ void init_line(float *values,int tpoint,int nsteps)
     *     Update all values along line a specified number of times
     *********************************************************************/
     int i;
-    #pragma unroll 1000
+    #pragma unroll 1024
     for ( i = 1; i<=nsteps; i++) {
         if (indx ==0 || indx == tpoint)
             currentval =0.0;
@@ -166,6 +166,6 @@ __host__ int main(int argc, char *argv[])
     cudaMemcpy( final_result, values, datasize, cudaMemcpyDeviceToHost ); 
 	printfinal(final_result,tpoints);
 	printf("\nDone.\n\n");
-	
+	cudaFree(values);
 	return 0;
 }
